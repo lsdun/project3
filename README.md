@@ -105,36 +105,7 @@ def main():
     # make plots
     ...
     # print summary to stdout
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
 
 
 
