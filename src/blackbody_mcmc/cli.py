@@ -127,6 +127,42 @@ def main() -> None:
     summarise(chain_emcee, "emcee")
 
 
+ # ---------- Plots ----------
+    print("Creating plots...")
+    # emcee median as best-fit
+    theta_best = np.median(chain_emcee, axis=0)
+
+    plot_data_and_model(
+        wl,
+        I,
+        sigma,
+        theta=theta_best,
+        model_fn=model_intensity,
+        outfile=outdir / "data_and_model.png",
+    )
+
+    plot_traces(
+        manual.chain,
+        param_names=param_names,
+        outfile=outdir / "manual_traces.png",
+    )
+    plot_histograms(
+        chain_manual,
+        param_names=param_names,
+        outfile=outdir / "manual_posteriors.png",
+    )
+    plot_histograms(
+        chain_emcee,
+        param_names=param_names,
+        outfile=outdir / "emcee_posteriors.png",
+    )
+
+    print(f"\nDone. Results written to {outdir.resolve()}")
+
+
+if __name__ == "__main__":
+    main()
+
 
 
 
