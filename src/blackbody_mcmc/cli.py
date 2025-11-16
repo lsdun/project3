@@ -95,6 +95,36 @@ def main() -> None:
     burn_e = int(0.2 * args.n_steps_emcee)
     chain_emcee = emcee_res.chain[:, burn_e:, :].reshape(-1, 2)
 
+# ---------- Diagnostics ----------
+    param_names = ["T [K]", "A"]
+
+    # autocorrelation for T parameter of manual chain
+    acf_T = autocorrelation(chain_manual[:, 0])
+    tau_int = 0.5 + acf_T[1:].sum()
+    print(f"Estimated integrated autocorrelation time (manual, T): {tau_int:.1f} steps")
+
+    # Gelman-Rubin on 4 manual subchains
+    subchains = np.array_split(chain_manual, 4)
+    r_hat = gelman_rubin(subchains)
+    print(f"R-hat (manual): T={r_hat[0]:.3f}, A={r_hat[1]:.3f}")
+
+    # ---------- Parameter summaries ----------
+    def summarise(chain: np.ndarray, label: str) -> None:
+        mean = chain.mean(axis=0)
+        median = np.percentile(chain, [16, 50, 84], axis=0)
+        print(f"\n{label} posterior summary:")
+        print(f"  mean T = {mean[0]:.2f} K, mean A = {mean[1]:.3e}")
+        print(
+            "  T (16/50/84%) = "
+            f"{median[0,0]:.2f}, {median[1,0]:.2f}, {median[2,0]:.2f} K"
+        )
+        print(
+            "  A (16/50/84%) = "
+            f"{median[0,1]:.3e}, {median[1,1]:.3e}, {median[2,1]:.3e}"
+        )
+
+    summarise(chain_manual, "Manual MCMC")
+    summarise(chain_emcee, "emcee")
 
 
 
