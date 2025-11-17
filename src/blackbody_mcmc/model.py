@@ -82,6 +82,32 @@ def log_prior(theta: Sequence[float]) -> float:
     return 0.0
 
 
+def log_likelihood(
+    theta: Sequence[float],
+    wavelength: np.ndarray,
+    intensity: np.ndarray,
+    sigma: np.ndarray,
+) -> float:
+    """
+    Gaussian log-likelihood for intensity data
+    Parameters
+    ----------
+    theta : sequence of float
+        Parameters (T, A)
+    wavelength : ndarray
+        Wavelengths [m]
+    intensity : ndarray
+        Observed intensities
+    sigma : ndarray
+        Measurement uncertainties
+    Returns
+    -------
+    float
+        Log-likelihood value
+    """
+    model = model_intensity(wavelength, theta)
+    resid = (intensity - model) / sigma
+    return -0.5 * np.sum(resid**2 + np.log(2.0 * np.pi * sigma**2))
 
 
 
