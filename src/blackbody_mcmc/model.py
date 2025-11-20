@@ -7,7 +7,7 @@ from typing import Sequence
 import numpy as np
 from scipy import constants as const
 
-
+#Planck function
 def planck_lambda(wavelength: np.ndarray, temperature: float) -> np.ndarray:
     """
     Planck spectral radiance as a function of wavelength
@@ -25,6 +25,9 @@ def planck_lambda(wavelength: np.ndarray, temperature: float) -> np.ndarray:
     wl = np.asarray(wavelength, dtype=float)
     T = float(temperature)
 
+      if np.any(wl <= 0):
+        raise ValueError("Wavelengths must be strictly positive.")
+
     h = const.h
     c = const.c
     k_B = const.k
@@ -33,18 +36,18 @@ def planck_lambda(wavelength: np.ndarray, temperature: float) -> np.ndarray:
     b = h * c / (wl * k_B * T)
 
     # avoids overflow for large b
-    intensity = a / (wl**5 * (np.exp(b) - 1.0))
-    return intensity
+    denom = np.expm1(b)
+    return a / (wl**5 * denom)
 
 
 
-
+#Forward model
 def model_intensity(
     wavelength: np.ndarray,
     theta: Sequence[float],
 ) -> np.ndarray:
     """
-    Model intensity including a calibration factor
+    Predicted intensity at given wavelengths.
     Parameters
     ----------
     wavelength : ndarray
@@ -59,7 +62,7 @@ def model_intensity(
     T, A = theta
     return A * planck_lambda(wavelength, T)
 
-
+#Priors
 def log_prior(theta: Sequence[float]) -> float:
     """
     Log prior probability for parameters
@@ -74,14 +77,17 @@ def log_prior(theta: Sequence[float]) -> float:
     """
     T, A = theta
     
-    if T <= 500 or T >= 10000:
+   if not (500.0 < T < 10000.0):
         return -np.inf
+
+    # Amplitude must be positive
     if A <= 0:
         return -np.inf
 
+    # Flat priors → constant log prior
     return 0.0
 
-
+#Liklihood
 def log_likelihood(
     theta: Sequence[float],
     wavelength: np.ndarray,
@@ -92,8 +98,7 @@ def log_likelihood(
     Gaussian log-likelihood for intensity data
     Parameters
     ----------
-    theta : sequence of float
-        Parameters (T, A)
+    theta : (T, A)
     wavelength : ndarray
         Wavelengths [m]
     intensity : ndarray
@@ -109,7 +114,7 @@ def log_likelihood(
     resid = (intensity - model) / sigma
     return -0.5 * np.sum(resid**2 + np.log(2.0 * np.pi * sigma**2))
 
-
+#Posterior
 def log_posterior(
     theta: Sequence[float],
     wavelength: np.ndarray,
@@ -120,8 +125,7 @@ def log_posterior(
     Log posterior up to a normalisation constant
     Parameters
     ----------
-    theta : sequence of float
-        Parameters (T, A)
+    theta : (T, A)
     wavelength, intensity, sigma : ndarray
         Data and uncertainties
     Returns
