@@ -1,10 +1,10 @@
 """This module contains the emcee for off-the-shelf MCMC"""
 
 from __future__ import annotations
-
-from dataclasses import dataclass
-import emcee
 import numpy as np
+import emcee
+from dataclasses import dataclass
+from typing import Callable, Optional
 
 
 @dataclass
@@ -16,13 +16,13 @@ class EmceeResult:
     acceptance_fraction: np.ndarray
 
 def run_emcee(
-    log_posterior: Callable[[Sequence[float]], float],
-    theta_start: Sequence[float],
+    log_posterior: Callable[[np.ndarray], float],
+    theta_start: np.ndarray,
     n_walkers: int = 32,
-    n_steps: int = 10_000,
-    scatter: float = 1e-2,
-    random_seed: int | None = None,
+    n_steps: int = 10000,
+    scatter: Optional[float] = None,  
 ) -> EmceeResult:
+    
     """
     Runs emcee ensemble sampler
 
