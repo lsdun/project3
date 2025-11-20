@@ -152,7 +152,7 @@ def main() -> None:
     else:
         print("Manual chain empty")
 
-     print("emcee acceptance fractions (per walker):", getattr(emcee_res, "acceptance_fraction", None))
+    print("emcee acceptance fractions (per walker):", getattr(emcee_res, "acceptance_fraction", None))
 
     # Summaries
     summarize_chain(chain_manual, "Manual MCMC")
