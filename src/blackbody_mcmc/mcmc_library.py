@@ -46,23 +46,22 @@ def run_emcee(
     EmceeResult
         Output chain and diagnostics
     """
-    theta_start = np.asarray(theta_start, dtype=float)
-    n_params = theta_start.size
+    ndim = len(theta_start)
 
-    if n_walkers < 2 * n_params:
-        raise ValueError("n_walkers should be at least 2 * n_params.")
+    p0 = theta_start + 1e-3 * np.random.randn(n_walkers, ndim)
 
-    rng = np.random.default_rng(random_seed)
-    pos0 = theta_start + scatter * rng.normal(size=(n_walkers, n_params))
+    sampler = emcee.EnsembleSampler(n_walkers, ndim, log_posterior)
 
-    def log_prob(theta: np.ndarray) -> float:
-        return log_posterior(theta)
+    sampler.run_mcmc(p0, n_steps, progress=True)
 
-    sampler = emcee.EnsembleSampler(n_walkers, n_params, log_prob)
-    sampler.run_mcmc(pos0, n_steps, progress=False)
+    chain_raw = sampler.get_chain()
+    chain = np.transpose(chain_raw, (1, 0, 2))
+
+    logp_raw = sampler.get_log_prob()
+    log_prob = np.transpose(logp_raw, (1, 0))
 
     return EmceeResult(
-        chain=sampler.get_chain(),  # (n_walkers, n_steps, n_params)
-        log_prob=sampler.get_log_prob(),
-        acceptance_fraction=sampler.acceptance_fraction,
+        chain=chain,
+        log_prob=log_prob,
+        acceptance_fraction=np.array(sampler.acceptance_fraction),
     )
