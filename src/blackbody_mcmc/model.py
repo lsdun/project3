@@ -77,7 +77,7 @@ def log_prior(theta: Sequence[float]) -> float:
     """
     T, A = theta
     
-   if not (500.0 < T < 10000.0):
+    if not (500.0 < T < 10000.0):
         return -np.inf
 
     # Amplitude must be positive
