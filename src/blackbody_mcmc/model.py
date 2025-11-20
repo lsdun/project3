@@ -25,7 +25,7 @@ def planck_lambda(wavelength: np.ndarray, temperature: float) -> np.ndarray:
     wl = np.asarray(wavelength, dtype=float)
     T = float(temperature)
 
-      if np.any(wl <= 0):
+    if np.any(wl <= 0):
         raise ValueError("Wavelengths must be strictly positive.")
 
     h = const.h
