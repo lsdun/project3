@@ -19,7 +19,7 @@ pip install e
 
 You can run the simulation from the command line using the installed CLI:
 ```bash
-blackbody-mcmc data/blackbody.csv --n-steps-manual 5000 --n-steps-emcee 10000
+blackbody-mcmc data/blackbody.csv --n-steps-manual 5000 --n-steps-emcee 5000
 ```
 
 ### Arguments
