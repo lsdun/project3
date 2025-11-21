@@ -168,11 +168,13 @@ def main() -> None:
         print("\nAutocorrelation Times (emcee):")
         for i, name in enumerate(["T", "A"]):
             flat = emcee_res.chain[:, :, i].reshape(-1)
-            tau = integrated_autocorr_time(flat, max_lag=200)
+            tau = integrated_autoco rr_time(flat, max_lag=200)
             print(f"  tau_int({name}) = {tau:.1f} steps")
     except Exception as e:
         print("Could not compute autocorrelation time for emcee:", e)
-  if chain_manual.size > 0:
+
+    
+    if chain_manual.size > 0:
         print("\nAutocorrelation Times (manual):")
         for i, name in enumerate(["T", "A"]):
             tau = integrated_autocorr_time(chain_manual[:, i], max_lag=200)
