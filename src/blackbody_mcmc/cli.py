@@ -6,6 +6,8 @@ import argparse
 from pathlib import Path
 
 import numpy as np
+from typing import Tuple
+from .mcmc_manual import MCMCResult
 
 from .data import load_data
 from .diagnostics import autocorrelation, gelman_rubin
@@ -168,7 +170,7 @@ def main() -> None:
         print("\nAutocorrelation Times (emcee):")
         for i, name in enumerate(["T", "A"]):
             flat = emcee_res.chain[:, :, i].reshape(-1)
-            tau = integrated_autoco rr_time(flat, max_lag=200)
+            tau = integrated_autocorr_time(flat, max_lag=200)
             print(f"  tau_int({name}) = {tau:.1f} steps")
     except Exception as e:
         print("Could not compute autocorrelation time for emcee:", e)
