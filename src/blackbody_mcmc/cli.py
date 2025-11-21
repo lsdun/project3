@@ -60,8 +60,6 @@ def initial_guess(wl: np.ndarray, intensity: np.ndarray) -> np.ndarray:
     A_guess = 1e-20
     return np.array([T_guess, A_guess])
 
-
-
 # Hasting Metropolis sampler wrappers
 def run_manual_sampler(theta0: np.ndarray, logp_fn, n_steps: int,
                        proposal_scale: Tuple[float, float], random_seed: int | None = None
@@ -72,7 +70,6 @@ def run_manual_sampler(theta0: np.ndarray, logp_fn, n_steps: int,
     postburn_chain = result.chain[burn:]
     print(f"Manual acceptance rate: {result.accept_rate:.3f}")
     return result, postburn_chain
-
 
 #emcee sampler wrappers
 def run_emcee_sampler(
@@ -98,8 +95,17 @@ def run_emcee_sampler(
         flat = emcee_res.chain[:, burn:, :].reshape(-1, n_params)
     return emcee_res, flat, burn
 
-
-
+# computing R-hat for emcee method
+def compute_emcee_rhat(emcee_chain, n_splits=2):
+    n_walkers, n_steps, n_params = emcee_chain.shape
+    seg_len = n_steps // n_splits
+    segments = []
+    for w in range(n_walkers):
+        for k in range(n_splits):
+            s = emcee_chain[w, k * seg_len:(k + 1) * seg_len, :]
+            segments.append(s)
+    return gelman_rubin(segments)
+    
 #Skip empty mc chains
 def summarize_chain(chain: np.ndarray, label: str) -> None:
     if chain.size == 0:
@@ -111,9 +117,6 @@ def summarize_chain(chain: np.ndarray, label: str) -> None:
     print(f"  mean T = {mean[0]:.2f} K, mean A = {mean[1]:.3e}")
     print(f"  T (16/50/84%) = {p16[0]:.2f}, {p50[0]:.2f}, {p84[0]:.2f} K")
     print(f"  A (16/50/84%) = {p16[1]:.3e}, {p50[1]:.3e}, {p84[1]:.3e}")
-
-
-
 
 # Main script
 def main() -> None:
@@ -194,19 +197,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-   
-   
-
-
-
-
-
-
-
-
-
-
-
-
-
