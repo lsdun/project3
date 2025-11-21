@@ -60,6 +60,24 @@ def initial_guess(wl: np.ndarray, intensity: np.ndarray) -> np.ndarray:
     A_guess = 1e-20
     return np.array([T_guess, A_guess])
 
+
+# integrated autocorrelation time 
+def integrated_autocorr_time(series: np.ndarray, max_lag: int | None = None) -> float:
+    acf = autocorrelation(series)
+    if max_lag is None:
+        max_lag = len(acf)
+
+    positive_acf = [acf[0]]
+    for v in acf[1:max_lag]:
+        if v < 0:
+            break
+        positive_acf.append(v)
+
+    return 0.5 + np.sum(positive_acf[1:])
+
+
+
+
 # Hasting Metropolis sampler wrappers
 def run_manual_sampler(theta0: np.ndarray, logp_fn, n_steps: int,
                        proposal_scale: Tuple[float, float], random_seed: int | None = None
@@ -138,30 +156,42 @@ def main() -> None:
                                                   args.n_steps_manual, args.proposal_scale)
 
     emcee_res, chain_emcee, burn_e = run_emcee_sampler(theta0, logp, args.n_steps_emcee)
+        try:
+        rhat_emcee = compute_emcee_rhat(emcee_res.chain, n_splits=2)
+        print(f"R-hat (emcee): T={rhat_emcee[0]:.3f}, A={rhat_emcee[1]:.3f}")
+    except Exception as e:
+        print("Could not compute R-hat for emcee:", e)
 
     param_names = ["T [K]", "A"]
 
-    # Diagnostics: manual
-    if chain_manual.size > 0:
-        acf_T = autocorrelation(chain_manual[:, 0])
-        tau_int = 0.5 + acf_T[1:].sum()
-        print(f"Estimated integrated autocorrelation time (manual, T): {tau_int:.1f} steps")
+    try:
+        print("\nAutocorrelation Times (emcee):")
+        for i, name in enumerate(["T", "A"]):
+            flat = emcee_res.chain[:, :, i].reshape(-1)
+            tau = integrated_autocorr_time(flat, max_lag=200)
+            print(f"  tau_int({name}) = {tau:.1f} steps")
+    except Exception as e:
+        print("Could not compute autocorrelation time for emcee:", e)
+  if chain_manual.size > 0:
+        print("\nAutocorrelation Times (manual):")
+        for i, name in enumerate(["T", "A"]):
+            tau = integrated_autocorr_time(chain_manual[:, i], max_lag=200)
+            print(f"  tau_int({name}) = {tau:.1f} steps")
+
         try:
             subchains = np.array_split(chain_manual, 4)
             r_hat = gelman_rubin(subchains)
             print(f"R-hat (manual): T={r_hat[0]:.3f}, A={r_hat[1]:.3f}")
         except Exception as e:
-           print("Could not compute Gelman-Rubin for manual chain:", e)
+            print("Could not compute Gelman-Rubin for manual chain:", e)
     else:
         print("Manual chain empty")
 
     print("emcee acceptance fractions (per walker):", getattr(emcee_res, "acceptance_fraction", None))
 
-    # Summaries
     summarize_chain(chain_manual, "Manual MCMC")
     summarize_chain(chain_emcee, "emcee")
 
-    # Plots
     print("Creating plots...")
     if chain_emcee.size > 0:
         theta_best = np.median(chain_emcee, axis=0)
@@ -169,7 +199,7 @@ def main() -> None:
         theta_best = np.median(chain_manual, axis=0)
     else:
         theta_best = theta0
-        print("Both chains empty — using initial guess for plotting.")
+        print("Both chains empty â€” using initial guess for plotting.")
 
     plot_data_and_model(wl, I, sigma, theta=theta_best,
                         model_fn=model_intensity, outfile=outdir / "data_and_model.png")
@@ -187,8 +217,6 @@ def main() -> None:
     try:
         if chain_emcee.size > 0:
             plot_histograms(chain_emcee, param_names=param_names, outfile=outdir / "emcee_posteriors.png")
-        else:
-            print("Skipping emcee posterior histogram (empty chain).")
     except Exception as e:
         print("Could not create emcee posterior histograms:", e)
 
@@ -197,3 +225,8 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+ 
+
+  
+
+
