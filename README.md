@@ -109,4 +109,52 @@ def main():
 ```
 
 
+***Bonus Plot: Joint Posterior***
+In order to obtain the joint posterior plot, which creates a 2D hexbin density plot of T vs. A the following command needs to be input into the terminal:
+
+
+```python
+PYTHONPATH=src python - << 'EOF'
+import numpy as np
+import matplotlib.pyplot as plt
+from pathlib import Path
+
+from blackbody_mcmc.data import load_data
+from blackbody_mcmc.model import log_posterior
+from blackbody_mcmc.mcmc_library import run_emcee
+
+# ----- Load data -----
+wl, I, sigma = load_data("blackbody.csv")
+
+# ----- Define posterior for emcee -----
+def lp(theta):
+    return log_posterior(theta, wl, I, sigma)
+
+# Initial guess for (T, A) using Wien's law
+lambda_peak = wl[np.argmax(I)]
+T_guess = 2.9e-3 / lambda_peak
+A_guess = 0.63
+
+# ----- Runs a moderately long emcee chain -----
+res = run_emcee(lp, [T_guess, A_guess], n_walkers=32, n_steps=6000)
+burn = 1000
+chain = res.chain[:, burn:, :].reshape(-1, 2)
+T = chain[:, 0]
+A = chain[:, 1]
+
+# ----- Plots joint posterior -----
+outdir = Path("results")
+outdir.mkdir(exist_ok=True)
+
+plt.figure(figsize=(5,4))
+plt.hexbin(T, A, gridsize=40)
+plt.xlabel("T [K]")
+plt.ylabel("A")
+plt.colorbar(label="posterior density")
+plt.tight_layout()
+plt.savefig(outdir / "joint_posterior_TA.png")
+plt.close()
+print("Saved joint posterior to", outdir / "joint_posterior_TA.png")
+EOF
+```
 
