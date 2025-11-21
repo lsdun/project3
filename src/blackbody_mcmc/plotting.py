@@ -26,11 +26,12 @@ def plot_data_and_model(
     model_grid = model_fn(wl_grid, theta)
 
     fig, ax = plt.subplots()
-    ax.errorbar(wl, I, yerr=s, fmt="o", label="data")
-    ax.plot(wl_grid, model_grid, label="best-fit model")
+    ax.errorbar(wl, I, yerr=s, fmt="o", label="data", color="thistle")
+    ax.plot(wl_grid, model_grid, label="best-fit model", color="deeppink")
 
     ax.set_xlabel("Wavelength [m]")
-    ax.set_ylabel("Intensity [arb.]")
+    ax.set_ylabel("Intensity")
+    ax.set_title("Blackbody Fit Using Manual Metropolis-Hastings Method")
     ax.legend()
     fig.tight_layout()
     outfile = Path(outfile)
