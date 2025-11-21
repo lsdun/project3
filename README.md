@@ -23,11 +23,18 @@ blackbody-mcmc data/blackbody.csv --n-steps-manual 5000 --n-steps-emcee 10000
 ```
 
 ### Arguments
-`--n`: 
+`--n`: Number of steps in chain for manual Metropolis-Hastings sampler 
 
-`--n`: 
+`--n`: Number of steps in chain for emcee sampler
 
 ## Output:
+This package outputs the Gelman Rubin statistic for both MCMC methods as well as the autocorrelation times. 
+Additionally, it outputs the normal distribution valuesof the paremeters. The plots generated are
+
+
+
+
+
 
 
 
