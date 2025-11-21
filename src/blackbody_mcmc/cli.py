@@ -156,7 +156,7 @@ def main() -> None:
                                                   args.n_steps_manual, args.proposal_scale)
 
     emcee_res, chain_emcee, burn_e = run_emcee_sampler(theta0, logp, args.n_steps_emcee)
-        try:
+    try:
         rhat_emcee = compute_emcee_rhat(emcee_res.chain, n_splits=2)
         print(f"R-hat (emcee): T={rhat_emcee[0]:.3f}, A={rhat_emcee[1]:.3f}")
     except Exception as e:
